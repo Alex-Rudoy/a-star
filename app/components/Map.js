@@ -1,23 +1,15 @@
 import React, { useEffect, useContext } from "react";
 import StateContext from "../context/StateContext";
+import Node from "./Node";
 
 function Map(props) {
   const appState = useContext(StateContext);
-
-  console.log(appState);
+  console.log(appState.endNode);
   return (
     <div className="map">
       {appState.nodes.map((row) => {
         return row.map((node) => {
-          return (
-            <div
-              className={`node ${
-                node.isStart ? "start" : node.isEnd ? "end" : node.isClosed ? "closed" : node.isOpen ? "open" : ""
-              }`}
-              data-x={node.x}
-              data-y={node.y}
-            ></div>
-          );
+          return <Node node={node} key={node.x + "_" + node.y}></Node>;
         });
       })}
     </div>

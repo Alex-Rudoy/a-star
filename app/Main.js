@@ -20,6 +20,7 @@ function Main() {
     nodes: [],
     currentNode: {},
     endNode: {},
+    runCount: 0,
   };
 
   function Reducer(draft, action) {
@@ -37,17 +38,24 @@ function Main() {
               isClosed: false,
               parent: { x: -1, y: -1 },
               fromStart: 0,
-              toEnd: 0,
+              toEnd: 1,
               index: Infinity,
             });
           }
         }
+        draft.isLoaded = true;
         return;
       case "example":
-        draft.nodes[10][10].isStart = "start";
-        draft.nodes[45][37].isEnd = "end";
-        draft.currentNode = draft.nodes[10][10];
-        draft.endNode = draft.nodes[45][37];
+        draft.nodes[2][2].isStart = "start";
+        draft.nodes[6][3].isEnd = "end";
+        draft.currentNode = draft.nodes[2][2];
+        draft.endNode = draft.nodes[6][3];
+        return;
+      case "run":
+        draft.runCount++;
+        return;
+      case "toEndCalculation":
+        draft.nodes[action.y][action.x].toEnd = action.value;
         return;
     }
   }
@@ -58,6 +66,33 @@ function Main() {
     dispatch({ type: "buildField" });
     dispatch({ type: "example" });
   }, []);
+
+  useEffect(() => {
+    if (state.isLoaded) {
+      aStar();
+    }
+  }, [state.runCount]);
+
+  // A* function
+  function toEndCalculation() {
+    for (let i = 0; i < 50; i++) {
+      for (let j = 0; j < 50; j++) {
+        const xDiff = Math.abs(j - state.endNode.x);
+        const yDiff = Math.abs(i - state.endNode.y);
+        let value = 0;
+        if (xDiff > yDiff) {
+          value = xDiff * 100 + yDiff * 41;
+        } else {
+          value = yDiff * 100 + xDiff * 41;
+        }
+        dispatch({ type: "toEndCalculation", x: j, y: i, value: value });
+      }
+    }
+  }
+
+  function aStar() {
+    toEndCalculation();
+  }
 
   // JSX
   return (
