@@ -11,7 +11,7 @@ import DispatchContext from "./context/DispatchContext";
 //components
 import Header from "./components/Header";
 import Map from "./components/Map";
-import Settings from "./components/Settings";
+import SideMenu from "./components/Settings";
 
 function Main() {
   // reducer setup
@@ -72,6 +72,9 @@ function Main() {
       case "pathFound":
         draft.userAction = "Path found";
         return;
+      case "stuck":
+        draft.userAction = "Path can't be found";
+        return;
       case "example":
         draft.nodes[action.startY][action.startX].isStart = true;
         draft.nodes[action.endY][action.endX].isEnd = true;
@@ -87,7 +90,7 @@ function Main() {
         return;
       case "step":
         draft.stepCount++;
-        draft.userAction = "";
+        draft.userAction = "Searching path";
         return;
       case "setToOpen":
         draft.nodes[action.y][action.x].isOpen = true;
@@ -169,6 +172,11 @@ function Main() {
       }
     }
 
+    if (foundMinIndexNodes.length == 0) {
+      dispatch({ type: "stuck" });
+      return;
+    }
+
     // find node with smallest distance to the end in that array
     foundMinIndexNodes.forEach((node) => {
       if (node.toEnd < minToEnd) {
@@ -189,6 +197,7 @@ function Main() {
     }
 
     // go through neighbours of the current
+
     for (let i = -1; i < 2; i++) {
       for (let j = -1; j < 2; j++) {
         if (currentY + j >= 0 && currentX + i >= 0 && currentY + j < 50 && currentX + i < 50) {
@@ -239,7 +248,7 @@ function Main() {
             <Header />
             <div className="container">
               <Map />
-              <Settings />
+              <SideMenu />
             </div>
           </div>
         </BrowserRouter>

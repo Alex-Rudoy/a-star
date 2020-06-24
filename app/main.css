@@ -30,6 +30,16 @@
   border-top: 1px solid #777;
   border-right: 1px solid #777;
   border-bottom: 1px solid #777;
+  position: relative;
+}
+
+.legend {
+  height: 450px;
+  position: absolute;
+  bottom: 0px;
+  text-align: left;
+  padding-left: 10px;
+  border-top: 1px solid #777;
 }
 
 .node {
@@ -85,6 +95,7 @@
   border-radius: 5px;
   width: 100px;
   margin: 15px auto;
+  padding: 5px;
   float: none;
 }
 

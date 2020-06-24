@@ -24,7 +24,7 @@ function Map(props) {
     if (appState.userAction == "Select end point") {
       appDispatch({ type: "selectEnd", x: x, y: y });
     }
-    if (appState.userAction == "Select walls") {
+    if (appState.userAction == "Select walls" && appState.toEndLoaded) {
       appDispatch({ type: "selectWalls", x: x, y: y });
     }
   }
