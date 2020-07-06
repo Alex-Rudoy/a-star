@@ -24,7 +24,7 @@ function Map(props) {
     if (appState.userAction == "Select end point") {
       appDispatch({ type: "selectEnd", x: x, y: y });
     }
-    if (appState.userAction == "Select walls" && appState.toEndLoaded) {
+    if (appState.userAction == "Select walls") {
       appDispatch({ type: "selectWalls", x: x, y: y });
     }
   }
@@ -61,7 +61,7 @@ function Map(props) {
               }`}
               data-x={node.x}
               data-y={node.y}
-              onClick={nodeClick}
+              onMouseDown={nodeClick}
               onMouseEnter={nodeDrag}
             ></div>
           );
