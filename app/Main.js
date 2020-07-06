@@ -22,7 +22,6 @@ function Main() {
     endNode: {},
     mapLoaded: false,
     exampleLoaded: false,
-    toEndLoaded: false,
     stepCount: 0,
     userAction: "Select start point",
     mouse: false,
@@ -82,12 +81,6 @@ function Main() {
         draft.endNode = draft.nodes[action.endY][action.endX];
         draft.exampleLoaded = true;
         return;
-      case "toEndCalculation":
-        draft.nodes[action.y][action.x].toEnd = action.value;
-        return;
-      case "toEndLoaded":
-        draft.toEndLoaded = true;
-        return;
       case "step":
         draft.stepCount++;
         draft.userAction = "Searching path";
@@ -97,9 +90,12 @@ function Main() {
         draft.nodes[action.y][action.x].parent.x = action.parentX;
         draft.nodes[action.y][action.x].parent.y = action.parentY;
         draft.nodes[action.y][action.x].fromStart = action.fromStart;
-        draft.nodes[action.y][action.x].index = action.fromStart + draft.nodes[action.y][action.x].toEnd;
+        draft.nodes[action.y][action.x].toEnd = action.toEnd;
+        draft.nodes[action.y][action.x].index = action.fromStart + action.toEnd;
         return;
-      case "setToClose":
+      case "toEndDistance":
+        return;
+      case "setToClosed":
         draft.nodes[action.y][action.x].isOpen = false;
         draft.nodes[action.y][action.x].isClosed = true;
         return;
@@ -123,35 +119,15 @@ function Main() {
     dispatch({ type: "buildMap" });
   }, []);
 
-  // heuristic distance to the end
   useEffect(() => {
     if (state.userAction == "Select walls") {
-      for (let i = 0; i < 50; i++) {
-        for (let j = 0; j < 50; j++) {
-          const xDiff = Math.abs(j - state.endNode.x);
-          const yDiff = Math.abs(i - state.endNode.y);
-          let value = 0;
-          if (xDiff > yDiff) {
-            value = xDiff * 100 + yDiff * 41;
-          } else {
-            value = yDiff * 100 + xDiff * 41;
-          }
-          dispatch({ type: "toEndCalculation", x: j, y: i, value: value });
-        }
-      }
-      dispatch({ type: "toEndLoaded" });
+      setToOpen(state.startNode.x, state.startNode.y, -1, -1, 0);
     }
   }, [state.userAction]);
 
-  useEffect(() => {
-    if (state.toEndLoaded) {
-      dispatch({ type: "setToOpen", x: state.startNode.x, y: state.startNode.y, fromStart: 0 });
-    }
-  }, [state.toEndLoaded]);
-
   // actual pathfinding
   useEffect(() => {
-    if (state.stepCount) {
+    if (state.userAction == "Searching path") {
       step();
     }
   }, [state.stepCount]);
@@ -187,7 +163,7 @@ function Main() {
     });
 
     // set the current node to closed
-    dispatch({ type: "setToClose", x: currentX, y: currentY });
+    dispatch({ type: "setToClosed", x: currentX, y: currentY });
     const currentNode = state.nodes[currentY][currentX];
 
     // if current one is the end, draw the path
@@ -202,26 +178,19 @@ function Main() {
       for (let j = -1; j < 2; j++) {
         if (currentY + j >= 0 && currentX + i >= 0 && currentY + j < 50 && currentX + i < 50) {
           const neighbourNode = state.nodes[currentY + j][currentX + i];
-          let newfromStart;
+          let newFromStart;
           if ((j + i) % 2 == 0) {
-            newfromStart = currentNode.fromStart + 141;
+            newFromStart = currentNode.fromStart + 141;
           } else {
-            newfromStart = currentNode.fromStart + 100;
+            newFromStart = currentNode.fromStart + 100;
           }
           if (
             !(j == 0 && i == 0) &&
             !neighbourNode.isClosed &&
             !neighbourNode.isWall &&
-            (!neighbourNode.isOpen || neighbourNode.fromStart > newfromStart)
+            (!neighbourNode.isOpen || neighbourNode.fromStart > newFromStart)
           ) {
-            dispatch({
-              type: "setToOpen",
-              x: neighbourNode.x,
-              y: neighbourNode.y,
-              parentX: currentNode.x,
-              parentY: currentNode.y,
-              fromStart: newfromStart,
-            });
+            setToOpen(neighbourNode.x, neighbourNode.y, currentNode.x, currentNode.y, newFromStart);
           }
         }
       }
@@ -229,14 +198,33 @@ function Main() {
     dispatch({ type: "step" });
   }
 
+  function setToOpen(x, y, parentX, parentY, fromStart) {
+    const xDiff = Math.abs(x - state.endNode.x);
+    const yDiff = Math.abs(y - state.endNode.y);
+    let toEnd = 0;
+    if (xDiff > yDiff) {
+      toEnd = xDiff * 100 + yDiff * 41;
+    } else {
+      toEnd = yDiff * 100 + xDiff * 41;
+    }
+    dispatch({
+      type: "setToOpen",
+      x: x,
+      y: y,
+      parentX: parentX,
+      parentY: parentY,
+      fromStart: fromStart,
+      toEnd: toEnd,
+    });
+  }
+
   function drawPath(x, y) {
     if (x == state.startNode.x && y == state.startNode.y) {
       dispatch({ type: "pathFound" });
       return;
-    } else {
-      dispatch({ type: "setToPath", x: x, y: y });
-      drawPath(state.nodes[y][x].parent.x, state.nodes[y][x].parent.y);
     }
+    dispatch({ type: "setToPath", x: x, y: y });
+    drawPath(state.nodes[y][x].parent.x, state.nodes[y][x].parent.y);
   }
 
   // JSX

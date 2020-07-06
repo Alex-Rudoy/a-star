@@ -18,40 +18,54 @@ function SideMenu(props) {
   return (
     <div className="settings">
       <div className="user-actions">
-        {appState.userAction == "Select walls" && !appState.toEndLoader ? "" : <h2>{appState.userAction}</h2>}
+        <h2>{appState.userAction}</h2>
         {appState.userAction == "Select start point" ? (
           <p>
             Click anywhere on the grid to place <span className="node start"></span> starting node
           </p>
-        ) : appState.userAction == "Select end point" ? (
+        ) : (
+          ""
+        )}
+        {appState.userAction == "Select end point" ? (
           <p>
             Click anywhere on the grid to place <span className="node end"></span> end node
           </p>
-        ) : appState.userAction == "Select walls" ? (
-          !appState.toEndLoaded ? (
-            <>
-              <h2>Calculating</h2>
-              <Loader />
-              <p>Calculating heuristic distance to the end</p>
-            </>
-          ) : (
-            <>
-              <p>
-                You can click and drag to draw <br />
-                <span className="node wall"></span> walls
-              </p>
-              <div className="button" onClick={step}>
-                Find the path!
-              </div>
-            </>
-          )
-        ) : appState.userAction == "Searching path" ? (
-          <Loader />
-        ) : appState.userAction == "Path found" ? (
+        ) : (
+          ""
+        )}
+        {appState.userAction == "Select walls" ? (
+          <>
+            <p>
+              You can click and drag to draw <br />
+              <span className="node wall"></span> walls
+            </p>
+            <div className="button" onClick={step}>
+              Find the path!
+            </div>
+          </>
+        ) : (
+          ""
+        )}
+        {appState.userAction == "Searching path" && appState.stepCount <= 300 ? <Loader /> : ""}
+        {appState.userAction == "Searching path" && appState.stepCount > 300 ? (
+          <>
+            <Loader />
+            <p>The algorhitm takes too much time, do you want to reload?</p>
+            <div className="button" onClick={reloadBrowser}>
+              Reload
+            </div>
+          </>
+        ) : (
+          ""
+        )}
+        {appState.userAction == "Path found" ? (
           <div className="button" onClick={reloadBrowser}>
             Reload
           </div>
-        ) : appState.userAction == "Path can't be found" ? (
+        ) : (
+          ""
+        )}
+        {appState.userAction == "Path can't be found" ? (
           <div className="button" onClick={reloadBrowser}>
             Reload
           </div>
